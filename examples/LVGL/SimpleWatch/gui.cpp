@@ -18,8 +18,7 @@ Created by Lewis he on October 10, 2019.
 #include "FS.h"
 #include "SD.h"
 
-#define RTC_TIME_ZONE   "CST-8"
-
+#define RTC_TIME_ZONE "CST-8"
 
 LV_FONT_DECLARE(Geometr);
 LV_FONT_DECLARE(Ubuntu);
@@ -63,6 +62,7 @@ static void updateTime();
 static void view_event_handler(lv_obj_t *obj, lv_event_t event);
 
 static void wifi_event_cb();
+static void buletooth_event_cb();
 static void sd_event_cb();
 static void setting_event_cb();
 static void light_event_cb();
@@ -72,10 +72,12 @@ static void wifi_destory();
 
 class StatusBar
 {
-    typedef struct {
+    typedef struct
+    {
         bool vaild;
         lv_obj_t *icon;
     } lv_status_bar_t;
+
 public:
     StatusBar()
     {
@@ -96,7 +98,7 @@ public:
         lv_style_set_image_recolor(&barStyle, LV_OBJ_PART_MAIN, LV_COLOR_WHITE);
 
         _bar = lv_cont_create(_par, NULL);
-        lv_obj_set_size(_bar,  LV_HOR_RES, _barHeight);
+        lv_obj_set_size(_bar, LV_HOR_RES, _barHeight);
         lv_obj_add_style(_bar, LV_OBJ_PART_MAIN, &barStyle);
 
         _array[0].icon = lv_label_create(_bar, NULL);
@@ -113,7 +115,7 @@ public:
         lv_img_set_src(_array[3].icon, LV_SYMBOL_BLUETOOTH);
         lv_obj_set_hidden(_array[3].icon, true);
 
-        //step counter
+        // step counter
         _array[4].icon = lv_img_create(_bar, NULL);
         lv_img_set_src(_array[4].icon, &step);
         lv_obj_align(_array[4].icon, _bar, LV_ALIGN_IN_LEFT_MID, 10, 0);
@@ -163,15 +165,21 @@ public:
     {
         return _bar;
     }
+
 private:
     void refresh()
     {
         int prev;
-        for (int i = 0; i < 4; i++) {
-            if (!lv_obj_get_hidden(_array[i].icon)) {
-                if (i == LV_STATUS_BAR_BATTERY_LEVEL) {
+        for (int i = 0; i < 4; i++)
+        {
+            if (!lv_obj_get_hidden(_array[i].icon))
+            {
+                if (i == LV_STATUS_BAR_BATTERY_LEVEL)
+                {
                     lv_obj_align(_array[i].icon, NULL, LV_ALIGN_IN_RIGHT_MID, 0, 0);
-                } else {
+                }
+                else
+                {
                     lv_obj_align(_array[i].icon, _array[prev].icon, LV_ALIGN_OUT_LEFT_MID, iconOffset, 0);
                 }
                 prev = i;
@@ -185,12 +193,11 @@ private:
     const int8_t iconOffset = -5;
 };
 
-
-
 class MenuBar
 {
 public:
-    typedef struct {
+    typedef struct
+    {
         const char *name;
         void *img;
         void (*event_cb)();
@@ -204,7 +211,7 @@ public:
         _obj = nullptr;
         _vp = nullptr;
     };
-    ~MenuBar() {};
+    ~MenuBar(){};
 
     void createMenu(lv_menu_config_t *config, int count, lv_event_cb_t event_cb, int direction = 1)
     {
@@ -217,18 +224,21 @@ public:
         lv_style_set_text_color(&menuStyle, LV_OBJ_PART_MAIN, LV_COLOR_WHITE);
         lv_style_set_image_recolor(&menuStyle, LV_OBJ_PART_MAIN, LV_COLOR_WHITE);
 
-
         _count = count;
 
-        _vp = new lv_point_t [count];
+        _vp = new lv_point_t[count];
 
         _obj = new lv_obj_t *[count];
 
-        for (int i = 0; i < count; i++) {
-            if (direction) {
+        for (int i = 0; i < count; i++)
+        {
+            if (direction)
+            {
                 _vp[i].x = 0;
                 _vp[i].y = i;
-            } else {
+            }
+            else
+            {
                 _vp[i].x = i;
                 _vp[i].y = 0;
             }
@@ -240,16 +250,17 @@ public:
         lv_obj_add_style(_cont, LV_OBJ_PART_MAIN, &menuStyle);
 
         _view = lv_tileview_create(_cont, NULL);
-        lv_tileview_set_valid_positions(_view, _vp, count );
+        lv_tileview_set_valid_positions(_view, _vp, count);
         lv_tileview_set_edge_flash(_view, false);
         lv_obj_align(_view, NULL, LV_ALIGN_CENTER, 0, 0);
         lv_page_set_scrlbar_mode(_view, LV_SCRLBAR_MODE_OFF);
         lv_obj_add_style(_view, LV_OBJ_PART_MAIN, &menuStyle);
 
-        lv_coord_t _w = lv_obj_get_width(_view) ;
+        lv_coord_t _w = lv_obj_get_width(_view);
         lv_coord_t _h = lv_obj_get_height(_view);
 
-        for (int i = 0; i < count; i++) {
+        for (int i = 0; i < count; i++)
+        {
             _obj[i] = lv_cont_create(_view, _view);
             lv_obj_set_size(_obj[i], _w, _h);
 
@@ -261,7 +272,6 @@ public:
             lv_label_set_text(label, config[i].name);
             lv_obj_align(label, img, LV_ALIGN_OUT_BOTTOM_MID, 0, 0);
 
-
             i == 0 ? lv_obj_align(_obj[i], NULL, LV_ALIGN_CENTER, 0, 0) : lv_obj_align(_obj[i], _obj[i - 1], direction ? LV_ALIGN_OUT_BOTTOM_MID : LV_ALIGN_OUT_RIGHT_MID, 0, 0);
 
             lv_tileview_add_element(_view, _obj[i]);
@@ -269,7 +279,7 @@ public:
             lv_obj_set_event_cb(_obj[i], event_cb);
         }
 
-        _exit  = lv_imgbtn_create(lv_scr_act(), NULL);
+        _exit = lv_imgbtn_create(lv_scr_act(), NULL);
         lv_imgbtn_set_src(_exit, LV_BTN_STATE_RELEASED, &menu);
         lv_imgbtn_set_src(_exit, LV_BTN_STATE_PRESSED, &menu);
         lv_imgbtn_set_src(_exit, LV_BTN_STATE_CHECKED_PRESSED, &menu);
@@ -293,45 +303,48 @@ public:
     }
     lv_obj_t *obj(int index) const
     {
-        if (index > _count)return nullptr;
+        if (index > _count)
+            return nullptr;
         return _obj[index];
     }
+
 private:
-    lv_obj_t *_cont, *_view, *_exit, * *_obj;
-    lv_point_t *_vp ;
+    lv_obj_t *_cont, *_view, *_exit, **_obj;
+    lv_point_t *_vp;
     int _count = 0;
 };
 
 MenuBar::lv_menu_config_t _cfg[7] = {
-    {.name = "WiFi",  .img = (void *) &wifi, .event_cb = wifi_event_cb},
-    {.name = "Bluetooth",  .img = (void *) &bluetooth, /*.event_cb = bluetooth_event_cb*/},
-    {.name = "SD Card",  .img = (void *) &sd,  /*.event_cb =sd_event_cb*/},
-    {.name = "Light",  .img = (void *) &light, /*.event_cb = light_event_cb*/},
-    {.name = "Setting",  .img = (void *) &setting, /*.event_cb = setting_event_cb */},
-    {.name = "Modules",  .img = (void *) &modules, /*.event_cb = modules_event_cb */},
-    {.name = "Camera",  .img = (void *) &CAMERA_PNG, /*.event_cb = camera_event_cb*/ }
-};
-
+    {.name = "WiFi", .img = (void *)&wifi, .event_cb = wifi_event_cb},
+    {.name = "Bluetooth", .img = (void *)&bluetooth, .event_cb = buletooth_event_cb},
+    {.name = "SD Card", .img = (void *)&sd, /*.event_cb =sd_event_cb*/},
+    {.name = "Light", .img = (void *)&light, /*.event_cb = light_event_cb*/},
+    {.name = "Setting", .img = (void *)&setting, /*.event_cb = setting_event_cb */},
+    {.name = "Modules", .img = (void *)&modules, /*.event_cb = modules_event_cb */},
+    {.name = "Camera", .img = (void *)&CAMERA_PNG, /*.event_cb = camera_event_cb*/}};
 
 MenuBar menuBars;
 StatusBar bar;
 
 static void event_handler(lv_obj_t *obj, lv_event_t event)
 {
-    if (event == LV_EVENT_SHORT_CLICKED) {  //!  Event callback Is in here
-        if (obj == menuBtn) {
+    if (event == LV_EVENT_SHORT_CLICKED)
+    { //!  Event callback Is in here
+        if (obj == menuBtn)
+        {
             lv_obj_set_hidden(mainBar, true);
-            if (menuBars.self() == nullptr) {
+            if (menuBars.self() == nullptr)
+            {
                 menuBars.createMenu(_cfg, sizeof(_cfg) / sizeof(_cfg[0]), view_event_handler);
                 lv_obj_align(menuBars.self(), bar.self(), LV_ALIGN_OUT_BOTTOM_MID, 0, 0);
-
-            } else {
+            }
+            else
+            {
                 menuBars.hidden(false);
             }
         }
     }
 }
-
 
 void setupGui()
 {
@@ -343,11 +356,10 @@ void setupGui()
     lv_style_set_text_color(&settingStyle, LV_OBJ_PART_MAIN, LV_COLOR_WHITE);
     lv_style_set_image_recolor(&settingStyle, LV_OBJ_PART_MAIN, LV_COLOR_WHITE);
 
-
-    //Create wallpaper
-    void *images[] = {(void *) &bg, (void *) &bg1, (void *) &bg2, (void *) &bg3 };
+    // Create wallpaper
+    void *images[] = {(void *)&bg, (void *)&bg1, (void *)&bg2, (void *)&bg3};
     lv_obj_t *scr = lv_scr_act();
-    lv_obj_t *img_bin = lv_img_create(scr, NULL);  /*Create an image object*/
+    lv_obj_t *img_bin = lv_img_create(scr, NULL); /*Create an image object*/
     srand((int)time(0));
     int r = rand() % 4;
     lv_img_set_src(img_bin, images[r]);
@@ -360,7 +372,8 @@ void setupGui()
 
     TTGOClass *ttgo = TTGOClass::getWatch();
 
-    if (ttgo->power->isChargeing()) {
+    if (ttgo->power->isChargeing())
+    {
         icon = LV_ICON_CHARGE;
     }
     updateBatteryIcon(icon);
@@ -375,9 +388,8 @@ void setupGui()
     lv_style_set_text_color(&mainStyle, LV_OBJ_PART_MAIN, LV_COLOR_WHITE);
     lv_style_set_image_recolor(&mainStyle, LV_OBJ_PART_MAIN, LV_COLOR_WHITE);
 
-
     mainBar = lv_cont_create(scr, NULL);
-    lv_obj_set_size(mainBar,  LV_HOR_RES, LV_VER_RES - bar.height());
+    lv_obj_set_size(mainBar, LV_HOR_RES, LV_VER_RES - bar.height());
     lv_obj_add_style(mainBar, LV_OBJ_PART_MAIN, &mainStyle);
     lv_obj_align(mainBar, bar.self(), LV_ALIGN_OUT_BOTTOM_MID, 0, 0);
 
@@ -405,7 +417,6 @@ void setupGui()
     lv_imgbtn_set_src(menuBtn, LV_BTN_STATE_CHECKED_PRESSED, &menu);
     lv_obj_add_style(menuBtn, LV_OBJ_PART_MAIN, &style_pr);
 
-
     lv_obj_align(menuBtn, mainBar, LV_ALIGN_OUT_BOTTOM_MID, 0, -70);
     lv_obj_set_event_cb(menuBtn, event_handler);
 
@@ -421,7 +432,7 @@ void updateStepCounter(uint32_t counter)
 static void updateTime()
 {
     time_t now;
-    struct tm  info;
+    struct tm info;
     char buf[64];
     time(&now);
     localtime_r(&now, &info);
@@ -441,18 +452,23 @@ void updateBatteryLevel()
 
 void updateBatteryIcon(lv_icon_battery_t icon)
 {
-    if (icon >= LV_ICON_CALCULATION) {
+    if (icon >= LV_ICON_CALCULATION)
+    {
         TTGOClass *ttgo = TTGOClass::getWatch();
         int level = ttgo->power->getBattPercentage();
-        if (level > 95)icon = LV_ICON_BAT_FULL;
-        else if (level > 80)icon = LV_ICON_BAT_3;
-        else if (level > 45)icon = LV_ICON_BAT_2;
-        else if (level > 20)icon = LV_ICON_BAT_1;
-        else icon = LV_ICON_BAT_EMPTY;
+        if (level > 95)
+            icon = LV_ICON_BAT_FULL;
+        else if (level > 80)
+            icon = LV_ICON_BAT_3;
+        else if (level > 45)
+            icon = LV_ICON_BAT_2;
+        else if (level > 20)
+            icon = LV_ICON_BAT_1;
+        else
+            icon = LV_ICON_BAT_EMPTY;
     }
     bar.updateBatteryIcon(icon);
 }
-
 
 static void lv_update_task(struct _lv_task_t *data)
 {
@@ -467,15 +483,20 @@ static void lv_battery_task(struct _lv_task_t *data)
 static void view_event_handler(lv_obj_t *obj, lv_event_t event)
 {
     int size = sizeof(_cfg) / sizeof(_cfg[0]);
-    if (event == LV_EVENT_SHORT_CLICKED) {
-        if (obj == menuBars.exitBtn()) {
+    if (event == LV_EVENT_SHORT_CLICKED)
+    {
+        if (obj == menuBars.exitBtn())
+        {
             menuBars.hidden();
             lv_obj_set_hidden(mainBar, false);
             return;
         }
-        for (int i = 0; i < size; i++) {
-            if (obj == menuBars.obj(i)) {
-                if (_cfg[i].event_cb != nullptr) {
+        for (int i = 0; i < size; i++)
+        {
+            if (obj == menuBars.obj(i))
+            {
+                if (_cfg[i].event_cb != nullptr)
+                {
                     menuBars.hidden();
                     _cfg[i].event_cb();
                 }
@@ -491,11 +512,11 @@ static void view_event_handler(lv_obj_t *obj, lv_event_t event)
  *
  */
 
-
 class Keyboard
 {
 public:
-    typedef enum {
+    typedef enum
+    {
         KB_EVENT_OK,
         KB_EVENT_EXIT,
     } kb_event_t;
@@ -514,7 +535,7 @@ public:
         _kbCont = nullptr;
     };
 
-    void create(lv_obj_t *parent =  nullptr)
+    void create(lv_obj_t *parent = nullptr)
     {
         static lv_style_t kbStyle;
 
@@ -526,7 +547,8 @@ public:
         lv_style_set_text_color(&kbStyle, LV_OBJ_PART_MAIN, LV_COLOR_WHITE);
         lv_style_set_image_recolor(&kbStyle, LV_OBJ_PART_MAIN, LV_COLOR_WHITE);
 
-        if (parent == nullptr) {
+        if (parent == nullptr)
+        {
             parent = lv_scr_act();
         }
 
@@ -565,29 +587,42 @@ public:
 
     static void __kb_event_cb(lv_obj_t *kb, lv_event_t event)
     {
-        if (event != LV_EVENT_VALUE_CHANGED && event != LV_EVENT_LONG_PRESSED_REPEAT) return;
+        if (event != LV_EVENT_VALUE_CHANGED && event != LV_EVENT_LONG_PRESSED_REPEAT)
+            return;
         lv_keyboard_ext_t *ext = (lv_keyboard_ext_t *)lv_obj_get_ext_attr(kb);
         const char *txt = lv_btnmatrix_get_active_btn_text(kb);
-        if (txt == NULL) return;
+        if (txt == NULL)
+            return;
         static int index = 0;
-        if (strcmp(txt, LV_SYMBOL_OK) == 0) {
+        if (strcmp(txt, LV_SYMBOL_OK) == 0)
+        {
             strcpy(__buf, lv_textarea_get_text(ext->ta));
-            if (_kb->_cb != nullptr) {
+            if (_kb->_cb != nullptr)
+            {
                 _kb->_cb(KB_EVENT_OK);
             }
             return;
-        } else if (strcmp(txt, "Exit") == 0) {
-            if (_kb->_cb != nullptr) {
+        }
+        else if (strcmp(txt, "Exit") == 0)
+        {
+            if (_kb->_cb != nullptr)
+            {
                 _kb->_cb(KB_EVENT_EXIT);
             }
             return;
-        } else if (strcmp(txt, LV_SYMBOL_RIGHT) == 0) {
+        }
+        else if (strcmp(txt, LV_SYMBOL_RIGHT) == 0)
+        {
             index = index + 1 >= sizeof(btnm_mapplus) / sizeof(btnm_mapplus[0]) ? 0 : index + 1;
             lv_keyboard_set_map(kb, LV_KEYBOARD_MODE_TEXT_LOWER, btnm_mapplus[index]);
             return;
-        } else if (strcmp(txt, "Del") == 0) {
+        }
+        else if (strcmp(txt, "Del") == 0)
+        {
             lv_textarea_del_char(ext->ta);
-        } else {
+        }
+        else
+        {
             lv_textarea_add_text(ext->ta, txt);
         }
     }
@@ -617,68 +652,46 @@ private:
 char Keyboard::__buf[128];
 Keyboard *Keyboard::_kb = nullptr;
 const char *Keyboard::btnm_mapplus[10][23] = {
-    {
-        "a", "b", "c",   "\n",
-        "d", "e", "f",   "\n",
-        "g", "h", "i",   "\n",
-        LV_SYMBOL_OK, "Del", "Exit", LV_SYMBOL_RIGHT, ""
-    },
-    {
-        "j", "k", "l", "\n",
-        "n", "m", "o",  "\n",
-        "p", "q", "r",  "\n",
-        LV_SYMBOL_OK, "Del", "Exit", LV_SYMBOL_RIGHT, ""
-    },
-    {
-        "s", "t", "u",   "\n",
-        "v", "w", "x", "\n",
-        "y", "z", " ", "\n",
-        LV_SYMBOL_OK, "Del", "Exit", LV_SYMBOL_RIGHT, ""
-    },
-    {
-        "A", "B", "C",  "\n",
-        "D", "E", "F",   "\n",
-        "G", "H", "I",  "\n",
-        LV_SYMBOL_OK, "Del", "Exit", LV_SYMBOL_RIGHT, ""
-    },
-    {
-        "J", "K", "L", "\n",
-        "N", "M", "O",  "\n",
-        "P", "Q", "R", "\n",
-        LV_SYMBOL_OK, "Del", "Exit", LV_SYMBOL_RIGHT, ""
-    },
-    {
-        "S", "T", "U",   "\n",
-        "V", "W", "X",   "\n",
-        "Y", "Z", " ", "\n",
-        LV_SYMBOL_OK, "Del", "Exit", LV_SYMBOL_RIGHT, ""
-    },
-    {
-        "1", "2", "3",  "\n",
-        "4", "5", "6",  "\n",
-        "7", "8", "9",  "\n",
-        LV_SYMBOL_OK, "Del", "Exit", LV_SYMBOL_RIGHT, ""
-    },
-    {
-        "0", "+", "-",  "\n",
-        "/", "*", "=",  "\n",
-        "!", "?", "#",  "\n",
-        LV_SYMBOL_OK, "Del", "Exit", LV_SYMBOL_RIGHT, ""
-    },
-    {
-        "<", ">", "@",  "\n",
-        "%", "$", "(",  "\n",
-        ")", "{", "}",  "\n",
-        LV_SYMBOL_OK, "Del", "Exit", LV_SYMBOL_RIGHT, ""
-    },
-    {
-        "[", "]", ";",  "\n",
-        "\"", "'", ".", "\n",
-        ",", ":",  " ", "\n",
-        LV_SYMBOL_OK, "Del", "Exit", LV_SYMBOL_RIGHT, ""
-    }
-};
-
+    {"a", "b", "c", "\n",
+     "d", "e", "f", "\n",
+     "g", "h", "i", "\n",
+     LV_SYMBOL_OK, "Del", "Exit", LV_SYMBOL_RIGHT, ""},
+    {"j", "k", "l", "\n",
+     "n", "m", "o", "\n",
+     "p", "q", "r", "\n",
+     LV_SYMBOL_OK, "Del", "Exit", LV_SYMBOL_RIGHT, ""},
+    {"s", "t", "u", "\n",
+     "v", "w", "x", "\n",
+     "y", "z", " ", "\n",
+     LV_SYMBOL_OK, "Del", "Exit", LV_SYMBOL_RIGHT, ""},
+    {"A", "B", "C", "\n",
+     "D", "E", "F", "\n",
+     "G", "H", "I", "\n",
+     LV_SYMBOL_OK, "Del", "Exit", LV_SYMBOL_RIGHT, ""},
+    {"J", "K", "L", "\n",
+     "N", "M", "O", "\n",
+     "P", "Q", "R", "\n",
+     LV_SYMBOL_OK, "Del", "Exit", LV_SYMBOL_RIGHT, ""},
+    {"S", "T", "U", "\n",
+     "V", "W", "X", "\n",
+     "Y", "Z", " ", "\n",
+     LV_SYMBOL_OK, "Del", "Exit", LV_SYMBOL_RIGHT, ""},
+    {"1", "2", "3", "\n",
+     "4", "5", "6", "\n",
+     "7", "8", "9", "\n",
+     LV_SYMBOL_OK, "Del", "Exit", LV_SYMBOL_RIGHT, ""},
+    {"0", "+", "-", "\n",
+     "/", "*", "=", "\n",
+     "!", "?", "#", "\n",
+     LV_SYMBOL_OK, "Del", "Exit", LV_SYMBOL_RIGHT, ""},
+    {"<", ">", "@", "\n",
+     "%", "$", "(", "\n",
+     ")", "{", "}", "\n",
+     LV_SYMBOL_OK, "Del", "Exit", LV_SYMBOL_RIGHT, ""},
+    {"[", "]", ";", "\n",
+     "\"", "'", ".", "\n",
+     ",", ":", " ", "\n",
+     LV_SYMBOL_OK, "Del", "Exit", LV_SYMBOL_RIGHT, ""}};
 
 /*****************************************************************
  *
@@ -688,7 +701,8 @@ const char *Keyboard::btnm_mapplus[10][23] = {
 class Switch
 {
 public:
-    typedef struct {
+    typedef struct
+    {
         const char *name;
         void (*cb)(uint8_t, bool);
     } switch_cfg_t;
@@ -717,8 +731,8 @@ public:
         lv_style_set_text_color(&swlStyle, LV_OBJ_PART_MAIN, LV_COLOR_WHITE);
         lv_style_set_image_recolor(&swlStyle, LV_OBJ_PART_MAIN, LV_COLOR_WHITE);
 
-
-        if (parent == nullptr) {
+        if (parent == nullptr)
+        {
             parent = lv_scr_act();
         }
         _exit_cb = cb;
@@ -730,12 +744,13 @@ public:
 
         _count = count;
         _sw = new lv_obj_t *[count];
-        _cfg = new switch_cfg_t [count];
+        _cfg = new switch_cfg_t[count];
 
         memcpy(_cfg, cfg, sizeof(switch_cfg_t) * count);
 
         lv_obj_t *prev = nullptr;
-        for (int i = 0; i < count; i++) {
+        for (int i = 0; i < count; i++)
+        {
             lv_obj_t *la1 = lv_label_create(_swCont, NULL);
             lv_label_set_text(la1, cfg[i].name);
             i == 0 ? lv_obj_align(la1, NULL, LV_ALIGN_IN_TOP_LEFT, 30, 20) : lv_obj_align(la1, prev, LV_ALIGN_OUT_BOTTOM_MID, 0, 20);
@@ -776,29 +791,36 @@ public:
 
     static void __switch_event_cb(lv_obj_t *obj, lv_event_t event)
     {
-        if (event == LV_EVENT_SHORT_CLICKED) {
+        if (event == LV_EVENT_SHORT_CLICKED)
+        {
             Serial.println("LV_EVENT_SHORT_CLICKED");
-            if (obj == _switch->_exitBtn) {
-                if ( _switch->_exit_cb != nullptr) {
+            if (obj == _switch->_exitBtn)
+            {
+                if (_switch->_exit_cb != nullptr)
+                {
                     _switch->_exit_cb();
                     return;
                 }
             }
         }
 
-        if (event == LV_EVENT_SHORT_CLICKED) {
+        if (event == LV_EVENT_SHORT_CLICKED)
+        {
             Serial.println("LV_EVENT_VALUE_CHANGED");
-            for (int i = 0; i < _switch->_count ; i++) {
+            for (int i = 0; i < _switch->_count; i++)
+            {
                 lv_obj_t *sw = _switch->_sw[i];
-                if (obj == sw) {
-                    const void *src =  lv_imgbtn_get_src(sw, LV_BTN_STATE_RELEASED);
+                if (obj == sw)
+                {
+                    const void *src = lv_imgbtn_get_src(sw, LV_BTN_STATE_RELEASED);
                     const void *dst = src == &off ? &on : &off;
                     bool en = src == &off;
                     lv_imgbtn_set_src(sw, LV_BTN_STATE_RELEASED, dst);
                     lv_imgbtn_set_src(sw, LV_BTN_STATE_PRESSED, dst);
                     lv_imgbtn_set_src(sw, LV_BTN_STATE_CHECKED_RELEASED, dst);
                     lv_imgbtn_set_src(sw, LV_BTN_STATE_CHECKED_PRESSED, dst);
-                    if (_switch->_cfg[i].cb != nullptr) {
+                    if (_switch->_cfg[i].cb != nullptr)
+                    {
                         _switch->_cfg[i].cb(i, en);
                     }
                     return;
@@ -809,9 +831,10 @@ public:
 
     void setStatus(uint8_t index, bool en)
     {
-        if (index > _count)return;
+        if (index > _count)
+            return;
         lv_obj_t *sw = _sw[index];
-        const void *dst =  en ? &on : &off;
+        const void *dst = en ? &on : &off;
         lv_imgbtn_set_src(sw, LV_BTN_STATE_RELEASED, dst);
         lv_imgbtn_set_src(sw, LV_BTN_STATE_PRESSED, dst);
         lv_imgbtn_set_src(sw, LV_BTN_STATE_CHECKED_RELEASED, dst);
@@ -830,7 +853,6 @@ private:
 
 Switch *Switch::_switch = nullptr;
 
-
 /*****************************************************************
  *
  *          ! Preload Class
@@ -845,16 +867,19 @@ public:
     }
     ~Preload()
     {
-        if (_preloadCont == nullptr) return;
+        if (_preloadCont == nullptr)
+            return;
         lv_obj_del(_preloadCont);
         _preloadCont = nullptr;
     }
     void create(lv_obj_t *parent = nullptr)
     {
-        if (parent == nullptr) {
+        if (parent == nullptr)
+        {
             parent = lv_scr_act();
         }
-        if (_preloadCont == nullptr) {
+        if (_preloadCont == nullptr)
+        {
             static lv_style_t plStyle;
             lv_style_init(&plStyle);
             lv_style_set_radius(&plStyle, LV_OBJ_PART_MAIN, 0);
@@ -863,7 +888,6 @@ public:
             lv_style_set_border_width(&plStyle, LV_OBJ_PART_MAIN, 0);
             lv_style_set_text_color(&plStyle, LV_OBJ_PART_MAIN, LV_COLOR_WHITE);
             lv_style_set_image_recolor(&plStyle, LV_OBJ_PART_MAIN, LV_COLOR_WHITE);
-
 
             static lv_style_t style;
             lv_style_init(&style);
@@ -899,7 +923,6 @@ private:
     lv_obj_t *_preloadCont = nullptr;
 };
 
-
 /*****************************************************************
  *
  *          ! List Class
@@ -909,22 +932,25 @@ private:
 class List
 {
 public:
-    typedef void(*list_event_cb)(const char *);
+    typedef void (*list_event_cb)(const char *);
     List()
     {
     }
     ~List()
     {
-        if (_listCont == nullptr) return;
+        if (_listCont == nullptr)
+            return;
         lv_obj_del(_listCont);
         _listCont = nullptr;
     }
     void create(lv_obj_t *parent = nullptr)
     {
-        if (parent == nullptr) {
+        if (parent == nullptr)
+        {
             parent = lv_scr_act();
         }
-        if (_listCont == nullptr) {
+        if (_listCont == nullptr)
+        {
             static lv_style_t listStyle;
             lv_style_init(&listStyle);
             lv_style_set_radius(&listStyle, LV_OBJ_PART_MAIN, 0);
@@ -962,9 +988,11 @@ public:
 
     static void __list_event_cb(lv_obj_t *obj, lv_event_t event)
     {
-        if (event == LV_EVENT_SHORT_CLICKED) {
+        if (event == LV_EVENT_SHORT_CLICKED)
+        {
             const char *txt = lv_list_get_btn_text(obj);
-            if (_list->_cb != nullptr) {
+            if (_list->_cb != nullptr)
+            {
                 _list->_cb(txt);
             }
         }
@@ -973,9 +1001,10 @@ public:
     {
         _cb = cb;
     }
+
 private:
     lv_obj_t *_listCont = nullptr;
-    static List *_list ;
+    static List *_list;
     list_event_cb _cb = nullptr;
 };
 List *List::_list = nullptr;
@@ -995,7 +1024,8 @@ public:
     }
     ~Task()
     {
-        if ( _handler == nullptr)return;
+        if (_handler == nullptr)
+            return;
         Serial.println("Free Task Func");
         lv_task_del(_handler);
         _handler = nullptr;
@@ -1004,7 +1034,7 @@ public:
 
     void create(lv_task_cb_t cb, uint32_t period = 1000, lv_task_prio_t prio = LV_TASK_PRIO_LOW)
     {
-        _handler = lv_task_create(cb,  period,  prio, NULL);
+        _handler = lv_task_create(cb, period, prio, NULL);
     };
 
 private:
@@ -1027,21 +1057,26 @@ public:
     }
     ~MBox()
     {
-        if (_mbox == nullptr)return;
+        if (_mbox == nullptr)
+            return;
         lv_obj_del(_mbox);
         _mbox = nullptr;
     }
 
     void create(const char *text, lv_event_cb_t event_cb, const char **btns = nullptr, lv_obj_t *par = nullptr)
     {
-        if (_mbox != nullptr)return;
+        if (_mbox != nullptr)
+            return;
         lv_obj_t *p = par == nullptr ? lv_scr_act() : par;
         _mbox = lv_msgbox_create(p, NULL);
         lv_msgbox_set_text(_mbox, text);
-        if (btns == nullptr) {
+        if (btns == nullptr)
+        {
             static const char *defBtns[] = {"Ok", ""};
             lv_msgbox_add_btns(_mbox, defBtns);
-        } else {
+        }
+        else
+        {
             lv_msgbox_add_btns(_mbox, btns);
         }
         lv_obj_set_width(_mbox, LV_HOR_RES - 40);
@@ -1068,9 +1103,6 @@ private:
     lv_obj_t *_mbox = nullptr;
 };
 
-
-
-
 /*****************************************************************
  *
  *          ! GLOBAL VALUE
@@ -1093,40 +1125,47 @@ static char ssid[64], password[64];
  */
 void wifi_connect_status(bool result)
 {
-    if (gTicker != nullptr) {
+    if (gTicker != nullptr)
+    {
         delete gTicker;
         gTicker = nullptr;
     }
-    if (kb != nullptr) {
+    if (kb != nullptr)
+    {
         delete kb;
         kb = nullptr;
     }
-    if (sw != nullptr) {
+    if (sw != nullptr)
+    {
         delete sw;
         sw = nullptr;
     }
-    if (pl != nullptr) {
+    if (pl != nullptr)
+    {
         delete pl;
         pl = nullptr;
     }
-    if (result) {
+    if (result)
+    {
         bar.show(LV_STATUS_BAR_WIFI);
-    } else {
+    }
+    else
+    {
         bar.hidden(LV_STATUS_BAR_WIFI);
     }
     menuBars.hidden(false);
 }
 
-
 void wifi_kb_event_cb(Keyboard::kb_event_t event)
 {
-    if (event == 0) {
+    if (event == 0)
+    {
         kb->hidden();
         Serial.println(kb->getText());
         strlcpy(password, kb->getText(), sizeof(password));
         pl->hidden(false);
 
-        //When calling wifi, touch interruption may cause an exception, please disable it first
+        // When calling wifi, touch interruption may cause an exception, please disable it first
         TTGOClass *ttgo = TTGOClass::getWatch();
         ttgo->disableTouchIRQ();
 
@@ -1137,10 +1176,11 @@ void wifi_kb_event_cb(Keyboard::kb_event_t event)
         ttgo->enableTouchIRQ();
 
         gTicker = new Ticker;
-        gTicker->once_ms(5 * 1000, []() {
-            wifi_connect_status(false);
-        });
-    } else if (event == 1) {
+        gTicker->once_ms(5 * 1000, []()
+                         { wifi_connect_status(false); });
+    }
+    else if (event == 1)
+    {
         delete kb;
         delete sw;
         delete pl;
@@ -1153,11 +1193,15 @@ void wifi_kb_event_cb(Keyboard::kb_event_t event)
 
 void wifi_sw_event_cb(uint8_t index, bool en)
 {
-    switch (index) {
+    switch (index)
+    {
     case 0:
-        if (en) {
+        if (en)
+        {
             WiFi.begin();
-        } else {
+        }
+        else
+        {
             WiFi.disconnect();
             bar.hidden(LV_STATUS_BAR_WIFI);
         }
@@ -1171,11 +1215,14 @@ void wifi_sw_event_cb(uint8_t index, bool en)
         WiFi.scanNetworks(true);
         break;
     case 2:
-        if (!WiFi.isConnected()) {
-            //TODO pop-up window
+        if (!WiFi.isConnected())
+        {
+            // TODO pop-up window
             Serial.println("WiFi is no connect");
             return;
-        } else {
+        }
+        else
+        {
             configTzTime(RTC_TIME_ZONE, "pool.ntp.org");
             sw->hidden(false);
         }
@@ -1198,7 +1245,8 @@ void wifi_list_cb(const char *txt)
 
 void wifi_list_add(const char *ssid)
 {
-    if (list == nullptr) {
+    if (list == nullptr)
+    {
         pl->hidden();
         list = new List;
         list->create();
@@ -1208,25 +1256,24 @@ void wifi_list_add(const char *ssid)
     list->add(ssid);
 }
 
-
 static void wifi_event_cb()
 {
     Switch::switch_cfg_t cfg[3] = {{"Switch", wifi_sw_event_cb}, {"Scan", wifi_sw_event_cb}, {"NTP Sync", wifi_sw_event_cb}};
     sw = new Switch;
-    sw->create(cfg, 3, []() {
+    sw->create(cfg, 3, []()
+               {
         delete sw;
         sw = nullptr;
-        menuBars.hidden(false);
-    });
+        menuBars.hidden(false); });
     sw->align(bar.self(), LV_ALIGN_OUT_BOTTOM_MID);
     sw->setStatus(0, WiFi.isConnected());
 }
 
-
 static void wifi_destory()
 {
     Serial.printf("globalIndex:%d\n", globalIndex);
-    switch (globalIndex) {
+    switch (globalIndex)
+    {
     //! wifi management main
     case 0:
         menuBars.hidden(false);
@@ -1235,19 +1282,23 @@ static void wifi_destory()
         break;
     //! wifi ap list
     case 1:
-        if (list != nullptr) {
+        if (list != nullptr)
+        {
             delete list;
             list = nullptr;
         }
-        if (gTicker != nullptr) {
+        if (gTicker != nullptr)
+        {
             delete gTicker;
             gTicker = nullptr;
         }
-        if (kb != nullptr) {
+        if (kb != nullptr)
+        {
             delete kb;
             kb = nullptr;
         }
-        if (pl != nullptr) {
+        if (pl != nullptr)
+        {
             delete pl;
             pl = nullptr;
         }
@@ -1255,15 +1306,18 @@ static void wifi_destory()
         break;
     //! wifi keyboard
     case 2:
-        if (gTicker != nullptr) {
+        if (gTicker != nullptr)
+        {
             delete gTicker;
             gTicker = nullptr;
         }
-        if (kb != nullptr) {
+        if (kb != nullptr)
+        {
             delete kb;
             kb = nullptr;
         }
-        if (pl != nullptr) {
+        if (pl != nullptr)
+        {
             delete pl;
             pl = nullptr;
         }
@@ -1277,7 +1331,6 @@ static void wifi_destory()
     globalIndex--;
 }
 
-
 /*****************************************************************
  *
  *          !SETTING EVENT
@@ -1285,10 +1338,7 @@ static void wifi_destory()
  */
 static void setting_event_cb()
 {
-
-
 }
-
 
 /*****************************************************************
  *
@@ -1297,7 +1347,7 @@ static void setting_event_cb()
  */
 static void light_sw_event_cb(uint8_t index, bool en)
 {
-    //Add lights that need to be controlled
+    // Add lights that need to be controlled
 }
 
 static void light_event_cb()
@@ -1310,20 +1360,20 @@ static void light_event_cb()
         {"light4", light_sw_event_cb},
     };
     sw = new Switch;
-    sw->create(cfg, cfg_count, []() {
+    sw->create(cfg, cfg_count, []()
+               {
         delete sw;
         sw = nullptr;
-        menuBars.hidden(false);
-    });
+        menuBars.hidden(false); });
 
     sw->align(bar.self(), LV_ALIGN_OUT_BOTTOM_MID);
 
-    //Initialize switch status
-    for (int i = 0; i < cfg_count; i++) {
+    // Initialize switch status
+    for (int i = 0; i < cfg_count; i++)
+    {
         sw->setStatus(i, 0);
     }
 }
-
 
 /*****************************************************************
  *
@@ -1334,7 +1384,8 @@ static lv_obj_t *mbox1 = nullptr;
 
 static void create_mbox(const char *txt, lv_event_cb_t event_cb)
 {
-    if (mbox1 != nullptr)return;
+    if (mbox1 != nullptr)
+        return;
     static const char *btns[] = {"Ok", ""};
     mbox1 = lv_msgbox_create(lv_scr_act(), NULL);
     lv_msgbox_set_text(mbox1, txt);
@@ -1346,18 +1397,30 @@ static void create_mbox(const char *txt, lv_event_cb_t event_cb)
 
 static void destory_mbox()
 {
-    if (pl != nullptr) {
+    if (pl != nullptr)
+    {
         delete pl;
         pl = nullptr;
     }
-    if (list != nullptr) {
+    if (list != nullptr)
+    {
         delete list;
         list = nullptr;
     }
-    if (mbox1 != nullptr) {
+    if (mbox1 != nullptr)
+    {
         lv_obj_del(mbox1);
         mbox1 = nullptr;
     }
+}
+/*****************************************************************
+ *
+ *          ! BLUETOOTH EVENT
+ *
+ */
+
+static void buletooth_event_cb()
+{
 }
 
 /*****************************************************************
@@ -1368,27 +1431,23 @@ static void destory_mbox()
 
 static void sd_event_cb()
 {
-
 }
 
 /*****************************************************************
-*
+ *
  *          ! Modules EVENT
  *
  */
 static void modules_event_cb()
 {
-
 }
 
-
 /*****************************************************************
-*
+ *
  *          ! Camera EVENT
  *
  */
 
 static void camera_event_cb()
 {
-
 }
